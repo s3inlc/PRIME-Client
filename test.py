@@ -154,13 +154,42 @@ def getMessage(master):
 	#randomIDs = bytes('', "utf-8")
 	randomIDs = b''
 	x = 0
+	length = 0
 
 	if (bytes(idSha, 'utf-8') not in arrayAvailableIDs):
 		print('Sorry, there are no messages for you available.')
 	else:
+		indexID = arrayAvailableIDs.index(bytes(idSha, 'utf-8'))
+		#print(indexID)
+		
+		bitVector1 = ""
+		bitVector2 = ""
+		#print(bitVector1)
+		#print(bitVector2)
+
+		#print(len(arrayAvailableIDs))
+		#print(length)
+		
+		while (length < int(len(arrayAvailableIDs))):
+			if (length == indexID):
+				#print("here")
+				bitVector1 += "1"
+				bitVector2 += "0"
+			else:
+				bit = random.randint(0, 1)
+				#print(type(bit))
+				bitVector1 += str(bit)
+				bitVector2 += str(bit)
+			length += 1
+
+		#print(bitVector1)
+		#print(bitVector2)
+
+
 		del arrayAvailableIDs[arrayAvailableIDs.index(bytes(idSha, 'utf-8'))]
+		
 		count = int(len(arrayAvailableIDs)/2)
-		print(count)
+		#print(count)
 
 		if (count == 0):
 			print('There is no privacy available.')
@@ -203,10 +232,12 @@ def getMessage(master):
 			#print(randomIDs.decode('utf-8'))
 
 
-			server1.send(bytes('GTMSG:{' + randomIDs.decode('utf-8') + ';' + idSha + '}', 'utf8'))
-			server2.send(bytes('GTMSG:{' + randomIDs.decode('utf-8') + '}', 'utf8'))
-			message1 = server1.recv(100000000)
-			message2 = server2.recv(100000000)
+			#server1.send(bytes('GTMSG:{' + randomIDs.decode('utf-8') + ';' + idSha + '}', 'utf8'))
+			server1.send(bytes('GTMSG:{' + bitVector1 + '}', 'utf8'))
+			#server2.send(bytes('GTMSG:{' + randomIDs.decode('utf-8') + '}', 'utf8'))
+			server2.send(bytes('GTMSG:{' + bitVector2 + '}', 'utf8'))
+			message1 = server1.recv(1000000000)
+			message2 = server2.recv(1000000000)
 			#print(message1)
 			#print(message2)
 			message1 = message1[9:-1]# + bytes('=', 'utf8')
