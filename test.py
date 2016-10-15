@@ -8,6 +8,7 @@ import random
 import hashlib
 from operator import sub
 import os.path
+import time
 
 def generateKey():
 	random_generator = Random.new().read
@@ -44,23 +45,28 @@ def calculateID():
 def writeCacheMessage(idSha, msg):
 	#shaID = calculateID()
 	#print(shaID)
-	if (os.path.isfile('./msg/' + idSha + '/msg.txt')):
-		f = open('./msg/' + idSha + '/msg.txt', "a")
+	ms = int(time.time()*1000000)
+	checksum = hashlib.md5()
+	checksum.update(str(len(msg)).encode('utf-8'))
+	fileName = checksum.hexdigest() + "-" + str(ms) + ".txt"
+	#print(fileName)
+	if (os.path.isfile('./msg/' + idSha + '/' + fileName)):
+		f = open('./msg/' + idSha + '/' + fileName, "a")
 		f.write(msg + '\n')
 		f.close()
 	elif (not os.path.exists('./msg')):
 		os.makedirs('./msg')
 		os.makedirs('./msg/' + idSha)
-		f = open('./msg/' + idSha + '/msg.txt', "w")
+		f = open('./msg/' + idSha + '/' + fileName, "w")
 		f.write(msg + '\n')
 		f.close()
 	elif (not os.path.exists('./msg/' + idSha)):
 		os.makedirs('./msg/' + idSha)
-		f = open('./msg/' + idSha + '/msg.txt', "w")
+		f = open('./msg/' + idSha + '/' + fileName, "w")
 		f.write(msg + '\n')
 		f.close()
 	else:
-		f = open('./msg/' + idSha + '/msg.txt', "w")
+		f = open('./msg/' + idSha + '/' + fileName, "w")
 		f.write(msg + '\n')
 		f.close()
 
