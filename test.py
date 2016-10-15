@@ -71,6 +71,23 @@ def readCacheMessage():
 		f = open ('./msg/' + shaID + '/msg.txt', "r")
 		print(f.read())
 		f.close()
+
+
+def printMessages(messages, idSha):
+	keys = loadKey()
+	privateKey = keys[0]
+	publicKey = keys[1]
+
+	counter = 1
+
+	for m in messages:
+		if (m != '' and m != b''):
+			#print(str(m)+'\n')
+			decryptedMessage = privateKey.decrypt(m)
+			decryptedMessage = decryptedMessage.decode('utf-8')
+			writeCacheMessage(idSha, str(decryptedMessage))
+			print(str(counter) + ': ' + str(decryptedMessage))
+			counter = counter+1
 	
 
 def cryptTest():
@@ -119,10 +136,6 @@ def sendMessage(server):
 
 
 def getMessage(master):
-	keys = loadKey()
-	privateKey = keys[0]
-	publicKey = keys[1]
-
 	master.send(bytes('GTSRV', 'utf8'))
 	serverList = master.recv(1024)
 	#print(serverList)
@@ -151,66 +164,38 @@ def getMessage(master):
 	arrayAvailableIDs = listAvailableIDs.split(b';')
 	#print(arrayAvailableIDs)
 
-	#randomIDs = bytes('', "utf-8")
-	randomIDs = b''
-	x = 0
-	length = 0
-
 	if (bytes(idSha, 'utf-8') not in arrayAvailableIDs):
 		print('Sorry, there are no messages for you available.')
 	else:
+		#del arrayAvailableIDs[arrayAvailableIDs.index(bytes(idSha, 'utf-8'))]
+		length = 0
+		
 		indexID = arrayAvailableIDs.index(bytes(idSha, 'utf-8'))
-		#print(indexID)
-		
-		bitVector1 = ""
-		bitVector2 = ""
-		#print(bitVector1)
-		#print(bitVector2)
+		#print(indexID)		
+		availableIDs = len(arrayAvailableIDs)
+		#print(availableIDs)
 
-		#print(len(arrayAvailableIDs))
-		#print(length)
-		
-		while (length < int(len(arrayAvailableIDs))):
-			if (length == indexID):
-				#print("here")
-				bitVector1 += "1"
-				bitVector2 += "0"
-			else:
-				bit = random.randint(0, 1)
-				#print(type(bit))
-				bitVector1 += str(bit)
-				bitVector2 += str(bit)
-			length += 1
-
-		#print(bitVector1)
-		#print(bitVector2)
-
-
-		del arrayAvailableIDs[arrayAvailableIDs.index(bytes(idSha, 'utf-8'))]
-		
-		count = int(len(arrayAvailableIDs)/2)
-		#print(count)
-
-		if (count == 0):
+		if (availableIDs < 3):
 			print('There is no privacy available.')
 			var = str(input("Do you want to continue with no privacy?[y|n]\n"))
 			if var == 'y' or var == 'Y':
-				server1.send(bytes('GTMSG:{' + idSha + '}', 'utf8'))
+				bitVector1 = ""
+				while (length < availableIDs):
+					if (length == indexID):
+						bitVector1 += "1"
+					else:
+						bitVector1 += "0"
+					length += 1
+
+				server1.send(bytes('GTMSG:{' + bitVector1 + '}', 'utf8'))
 				message1 = server1.recv(100000000)
 				message1 = message1[9:-1]
 				message1 = base64.b64decode(message1)
 				messages1 = message1.split(b'###')
 
-				i = 1
+				printMessages(messages1, idSha)
 
-				for m in messages1:
-					if (m != '' and m != b''):
-						#print(str(m)+'\n')
-						decryptedMessage = privateKey.decrypt(m)
-						decryptedMessage = decryptedMessage.decode('utf-8')
-						writeCacheMessage(idSha, str(decryptedMessage))
-						print(str(i) + ': ' + str(decryptedMessage))
-						i = i+1
+
 			elif var == 'n' or var == 'N':
 				print('Operation canceled.')
 			else:
@@ -218,23 +203,27 @@ def getMessage(master):
 				
 
 		else:
-	
-			#print(randomIDs)
-	
-			while (x < count):
-				randomID = random.choice(arrayAvailableIDs)
-				randomIDs += randomID
-				randomIDs += b';'
-				del arrayAvailableIDs[arrayAvailableIDs.index(randomID)]
-				x += 1
-	
-			randomIDs = randomIDs[:-1]
-			#print(randomIDs.decode('utf-8'))
+			bitVector1 = ""
+			bitVector2 = ""
+			#print(bitVector1)
+			#print(bitVector2)
+		
+			while (length < availableIDs):
+				if (length == indexID):
+					#print("here")
+					bitVector1 += "1"
+					bitVector2 += "0"
+				else:
+					bit = random.randint(0, 1)
+					#print(type(bit))
+					bitVector1 += str(bit)
+					bitVector2 += str(bit)
+				length += 1
 
-
-			#server1.send(bytes('GTMSG:{' + randomIDs.decode('utf-8') + ';' + idSha + '}', 'utf8'))
+			#print(bitVector1)
+			#print(bitVector2)
+	
 			server1.send(bytes('GTMSG:{' + bitVector1 + '}', 'utf8'))
-			#server2.send(bytes('GTMSG:{' + randomIDs.decode('utf-8') + '}', 'utf8'))
 			server2.send(bytes('GTMSG:{' + bitVector2 + '}', 'utf8'))
 			message1 = server1.recv(1000000000)
 			message2 = server2.recv(1000000000)
@@ -267,7 +256,6 @@ def getMessage(master):
 				if elem < 0:
 					res[i] += 256
 				i += 1
-			#print(res)
 
 			res = bytes(res)
 			#print(res)
@@ -282,16 +270,9 @@ def getMessage(master):
 				del messages1[-1]
 	
 			#print(messages1)
-			i = 1
-	
-			for m in messages1:
-				if (m != '' and m != b''):
-					#print(str(m)+'\n')
-					decryptedMessage = privateKey.decrypt(m)
-					decryptedMessage = decryptedMessage.decode('utf-8')
-					writeCacheMessage(idSha, str(decryptedMessage))
-					print(str(i) + ': ' + str(decryptedMessage))
-					i = i+1
+			
+			printMessages(messages1, idSha)
+
 	server1.close()
 	server2.close()
 
