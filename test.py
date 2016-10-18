@@ -303,44 +303,57 @@ def serverConnection(ip, port):
 	return s
 
 
+def pingTest(master):
+	master.send(bytes('SPING:1', 'utf8'))
+	message = master.recv(100000000)
+	if message.startswith(b'SPING:'):
+		return True
+	else:
+		return False
+	
+
 def start():
 	s = serverConnection('127.0.0.1', 6667) #Masterserver
 
 	while True:
-		var = str(input("Enter Command ... \n"))
-		#print(var)
-		#add help
-		if var == '1':
-			sendMessage(s)
-			continue
-		elif var == '2':
-			getMessage(s)
-			continue
-		elif var == '3':
-			loadKey()
-			continue
-		elif var == '4':
-			generateKey()
-			continue
-		elif var == '7':
-			readCacheMessage()
-			continue
-		elif var == '9':
-			cryptTest()
-			continue
-		elif var == '0':
-			s.close() #Connection to Masterserver closed
-			break
-		elif var == 'h' or var == 'H' or var == 'help' or var == 'Help':
-			print('Press 1 for sending a message.')
-			print('Press 2 for recieving new messages.')
-			print('Press 3 for loading the keys (debug).')
-			print('Press 4 for generating new keys (debug).')
-			print('Press 9 for a crypting test. (debug).')
-			print('Press 0 for closing the connection.')
+		if pingTest(s):
+			var = str(input("Enter Command ... \n"))
+			#print(var)
+			if var == '1':
+				sendMessage(s)
+				continue
+			elif var == '2':
+				getMessage(s)
+				continue
+			elif var == '3':
+				loadKey()
+				continue
+			elif var == '4':
+				generateKey()
+				continue
+			elif var == '7':
+				readCacheMessage()
+				continue
+			elif var == '8':
+				pingTest(s)
+				continue
+			elif var == '9':
+				cryptTest()
+				continue
+			elif var == '0':
+				s.close() #Connection to Masterserver closed
+				break
+			elif var == 'h' or var == 'H' or var == 'help' or var == 'Help':
+				print('Press 1 for sending a message.')
+				print('Press 2 for recieving new messages.')
+				print('Press 3 for loading the keys (debug).')
+				print('Press 4 for generating new keys (debug).')
+				print('Press 9 for a crypting test. (debug).')
+				print('Press 0 for closing the connection.')
+			else:
+				print('Unknown command. Press h for help.')
+				continue
 		else:
-			print('Unknown command. Press h for help.')
-			continue
-
+			s = serverConnection('127.0.0.1', 6667) #Masterserver
 
 start()
