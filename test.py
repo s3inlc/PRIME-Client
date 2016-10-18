@@ -43,8 +43,6 @@ def calculateID():
 
 
 def writeCacheMessage(idSha, msg):
-	#shaID = calculateID()
-	#print(shaID)
 	ms = int(time.time()*1000000)
 	checksum = hashlib.md5()
 	checksum.update(str(len(msg)).encode('utf-8'))
@@ -138,146 +136,158 @@ def sendMessage(server):
 	if resp == b'NEMSG:OK\n':
 		print('Sending message succesfull.')
 	else:
-		print('Something went wrong. Try again later.')
+		print('Something went wrong while sending the messsage. Try again later.')
 
 
 def getMessage(master):
 	master.send(bytes('GTSRV', 'utf8'))
 	serverList = master.recv(1024)
-	#print(serverList)
-	serverList = serverList[7:-2]
-	#print(serverList)
-	serverList = serverList.split(b';')
-	#print(serverList)
+	if serverList.startswith(b'GTSRV:'):
+		#print(serverList)
+		serverList = serverList[7:-2]
+		#print(serverList)
+		serverList = serverList.split(b';')
+		#print(serverList)
 	
-	slave1 = random.choice(serverList)
-	#print(slave1)
-	del serverList[serverList.index(slave1)]
-	slave2 = random.choice(serverList)
-	#print(serverList)
-	#print(slave2)
+		slave1 = random.choice(serverList)
+		#print(slave1)
+		del serverList[serverList.index(slave1)]
+		slave2 = random.choice(serverList)
+		#print(serverList)
+		#print(slave2)
 
-	server1 = serverConnection(slave1.split(b',')[0], int(slave1.split(b',')[1]))
-	server2 = serverConnection(slave2.split(b',')[0], int(slave2.split(b',')[1]))
+		server1 = serverConnection(slave1.split(b',')[0], int(slave1.split(b',')[1]))
+		server2 = serverConnection(slave2.split(b',')[0], int(slave2.split(b',')[1]))
 	
-	idSha = calculateID()
+		idSha = calculateID()
 
-	master.send(bytes('GTADD', 'utf-8'))
-	listAvailableIDs = master.recv(100000)
-	listAvailableIDs = listAvailableIDs[7:-2]
-	#print(listAvailableIDs)
+		master.send(bytes('GTADD', 'utf-8'))
+		listAvailableIDs = master.recv(100000)
+		if listAvailableIDs.startswith(b'GTADD:'):
+			listAvailableIDs = listAvailableIDs[7:-2]
+			#print(listAvailableIDs)
 
-	arrayAvailableIDs = listAvailableIDs.split(b';')
-	#print(arrayAvailableIDs)
+			arrayAvailableIDs = listAvailableIDs.split(b';')
+			#print(arrayAvailableIDs)
 
-	if (bytes(idSha, 'utf-8') not in arrayAvailableIDs):
-		print('Sorry, there are no messages for you available.')
-	else:
-		#del arrayAvailableIDs[arrayAvailableIDs.index(bytes(idSha, 'utf-8'))]
-		length = 0
-		
-		indexID = arrayAvailableIDs.index(bytes(idSha, 'utf-8'))
-		#print(indexID)		
-		availableIDs = len(arrayAvailableIDs)
-		#print(availableIDs)
-
-		if (availableIDs < 3):
-			print('There is no privacy available.')
-			var = str(input("Do you want to continue with no privacy?[y|n]\n"))
-			if var == 'y' or var == 'Y':
-				bitVector1 = ""
-				while (length < availableIDs):
-					if (length == indexID):
-						bitVector1 += "1"
-					else:
-						bitVector1 += "0"
-					length += 1
-
-				server1.send(bytes('GTMSG:{' + bitVector1 + '}', 'utf8'))
-				message1 = server1.recv(100000000)
-				message1 = message1[9:-1]
-				message1 = base64.b64decode(message1)
-				messages1 = message1.split(b'###')
-
-				printMessages(messages1, idSha)
-
-
-			elif var == 'n' or var == 'N':
-				print('Operation canceled.')
+			if (bytes(idSha, 'utf-8') not in arrayAvailableIDs):
+				print('Sorry, there are no messages for you available.')
 			else:
-				print('Unknown command. Operation canceled.')
-				
-
-		else:
-			bitVector1 = ""
-			bitVector2 = ""
-			#print(bitVector1)
-			#print(bitVector2)
-		
-			while (length < availableIDs):
-				if (length == indexID):
-					#print("here")
-					bitVector1 += "1"
-					bitVector2 += "0"
-				else:
-					bit = random.randint(0, 1)
-					#print(type(bit))
-					bitVector1 += str(bit)
-					bitVector2 += str(bit)
-				length += 1
-
-			#print(bitVector1)
-			#print(bitVector2)
+				#del arrayAvailableIDs[arrayAvailableIDs.index(bytes(idSha, 'utf-8'))]
+				length = 0
 	
-			server1.send(bytes('GTMSG:{' + bitVector1 + '}', 'utf8'))
-			server2.send(bytes('GTMSG:{' + bitVector2 + '}', 'utf8'))
-			message1 = server1.recv(1000000000)
-			message2 = server2.recv(1000000000)
-			#print(message1)
-			#print(message2)
-			message1 = message1[9:-1]# + bytes('=', 'utf8')
-			message2 = message2[9:-1]# + bytes('=', 'utf8')
-			#print(message1)
-			#print(message2)
-	
-			message1 = base64.b64decode(message1)
-			message2 = base64.b64decode(message2)
-			#print(message1)
-			#print(message2)
+				indexID = arrayAvailableIDs.index(bytes(idSha, 'utf-8'))
+				#print(indexID)		
+				availableIDs = len(arrayAvailableIDs)
+				#print(availableIDs)
 
-			list1 = list(bytearray(message1))
-			list2 = list(bytearray(message2))
+				if (availableIDs < 3):
+					print('There is no privacy available.')
+					var = str(input("Do you want to continue with no privacy?[y|n]\n"))
+					if var == 'y' or var == 'Y':
+						bitVector1 = ""
+						while (length < availableIDs):
+							if (length == indexID):
+								bitVector1 += "1"
+							else:
+								bitVector1 += "0"
+							length += 1
 
-			#print (list1)
-			#print (list2)
-	
-			#print(len(list1))
+						server1.send(bytes('GTMSG:{' + bitVector1 + '}', 'utf8'))
+						message1 = server1.recv(100000000)
+						if message1.startswith(b'GTMSG:OK:'):
+							message1 = message1[9:-1]
+							message1 = base64.b64decode(message1)
+							messages1 = message1.split(b'###')
 
-			#res = map(sub, list1, list2)
-			list2 += [0] * (len(list1) - len(list2))
-			#print(len(list2))
-			res = [a - b for a, b in zip(list1, list2)]
-			i = 0
-			for elem in res:
-				if elem < 0:
-					res[i] += 256
-				i += 1
+							printMessages(messages1, idSha)
+						else:
+							print('Something went wrong while getting the messages. Try again later.')
 
-			res = bytes(res)
-			#print(res)
-		
-	
-			messages1 = res.split(b'###')
-			#print(messages1[0])
-			#print(messages1[1])
-			#print(messages1[-1])
 
-			if messages1[-1].startswith(b'\x00'):
-				del messages1[-1]
-	
-			#print(messages1)
+					elif var == 'n' or var == 'N':
+						print('Operation canceled.')
+					else:
+						print('Unknown command. Operation canceled.')
 			
-			printMessages(messages1, idSha)
+
+				else:
+					bitVector1 = ""
+					bitVector2 = ""
+					#print(bitVector1)
+					#print(bitVector2)
+	
+					while (length < availableIDs):
+						if (length == indexID):
+							#print("here")
+							bitVector1 += "1"
+							bitVector2 += "0"
+						else:
+							bit = random.randint(0, 1)
+							#print(type(bit))
+							bitVector1 += str(bit)
+							bitVector2 += str(bit)
+						length += 1
+
+					#print(bitVector1)
+					#print(bitVector2)
+
+					server1.send(bytes('GTMSG:{' + bitVector1 + '}', 'utf8'))
+					server2.send(bytes('GTMSG:{' + bitVector2 + '}', 'utf8'))
+					message1 = server1.recv(1000000000)
+					message2 = server2.recv(1000000000)
+					if message1.startswith(b'GTMSG:OK:') and message2.startswith(b'GTMSG:OK:'):
+						#print(message1)
+						#print(message2)
+						message1 = message1[9:-1]# + bytes('=', 'utf8')
+						message2 = message2[9:-1]# + bytes('=', 'utf8')
+						#print(message1)
+						#print(message2)
+
+						message1 = base64.b64decode(message1)
+						message2 = base64.b64decode(message2)
+						#print(message1)
+						#print(message2)
+
+						list1 = list(bytearray(message1))
+						list2 = list(bytearray(message2))
+
+						#print (list1)
+						#print (list2)
+
+						#print(len(list1))
+
+						#res = map(sub, list1, list2)
+						list2 += [0] * (len(list1) - len(list2))
+						#print(len(list2))
+						res = [a - b for a, b in zip(list1, list2)]
+						i = 0
+						for elem in res:
+							if elem < 0:
+								res[i] += 256
+							i += 1
+
+						res = bytes(res)
+						#print(res)
+	
+
+						messages1 = res.split(b'###')
+						#print(messages1[0])
+						#print(messages1[1])
+						#print(messages1[-1])
+
+						if messages1[-1].startswith(b'\x00'):
+							del messages1[-1]
+
+						#print(messages1)
+		
+						printMessages(messages1, idSha)
+					else:
+						print('Something went wrong while getting the messages. Try again later.')
+		else:
+			print('Something went wrong while trying to get available IDs. Try again later.')	
+	else:
+		print('Something went wrong while trying to get available servers. Try again later.')		
 
 	server1.close()
 	server2.close()
@@ -325,7 +335,7 @@ def start():
 			print('Press 1 for sending a message.')
 			print('Press 2 for recieving new messages.')
 			print('Press 3 for loading the keys (debug).')
-			print('Press 4 for genearting new keys (debug).')
+			print('Press 4 for generating new keys (debug).')
 			print('Press 9 for a crypting test. (debug).')
 			print('Press 0 for closing the connection.')
 		else:
