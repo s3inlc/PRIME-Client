@@ -362,6 +362,8 @@ def start():
 				print('Press 2 for recieving new messages.')
 				print('Press 3 for loading the keys (debug).')
 				print('Press 4 for generating new keys (debug).')
+				print('Press 7 for printing cached messages (debug).')
+				print('Press 8 for a PING test to Masterserver (debug).')
 				print('Press 9 for a crypting test. (debug).')
 				print('Press 0 for closing the connection.')
 			else:
