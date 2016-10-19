@@ -110,7 +110,17 @@ def sendMessage(server):
 	keys = loadKey()
 	publicKey = keys[1]
 
-	message = str(input("Enter the message:\n"))
+	message = ''
+	message += str(input("Enter the message:\n"))
+
+	while (True):
+		message += '\n'
+		try:
+			message += str(input())
+			
+		except EOFError:
+   			 break
+
 	#print(message)
 	encryptedMessage = publicKey.encrypt(message.encode('utf-8'), 32)
 
