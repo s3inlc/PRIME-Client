@@ -71,10 +71,14 @@ def writeCacheMessage(idSha, msg):
 
 def readCacheMessage():
 	shaID = calculateID()
-	if (os.path.isfile('./msg/' + shaID + '/msg.txt')):
-		f = open ('./msg/' + shaID + '/msg.txt', "r")
-		print(f.read())
-		f.close()
+	if (os.path.exists('./msg/' + shaID)):
+		for file in os.listdir('./msg/' + shaID):
+			if file.endswith(".txt"):
+				f = open ('./msg/' + shaID + '/' + file, "r")
+				print(f.read())
+				f.close()
+	else:
+		print('No cached messages are available.')
 
 
 def printMessages(messages, idSha):
