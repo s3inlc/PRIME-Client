@@ -50,22 +50,22 @@ def writeCacheMessage(idSha, msg):
 	#print(fileName)
 	if (os.path.isfile('./msg/' + idSha + '/' + fileName)):
 		f = open('./msg/' + idSha + '/' + fileName, "a")
-		f.write(msg + '\n')
+		f.write(msg)
 		f.close()
 	elif (not os.path.exists('./msg')):
 		os.makedirs('./msg')
 		os.makedirs('./msg/' + idSha)
 		f = open('./msg/' + idSha + '/' + fileName, "w")
-		f.write(msg + '\n')
+		f.write(msg)
 		f.close()
 	elif (not os.path.exists('./msg/' + idSha)):
 		os.makedirs('./msg/' + idSha)
 		f = open('./msg/' + idSha + '/' + fileName, "w")
-		f.write(msg + '\n')
+		f.write(msg)
 		f.close()
 	else:
 		f = open('./msg/' + idSha + '/' + fileName, "w")
-		f.write(msg + '\n')
+		f.write(msg)
 		f.close()
 
 
