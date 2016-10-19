@@ -115,12 +115,12 @@ def sendMessage(server):
 	publicKey = keys[1]
 
 	message = ''
-	message += str(input("Enter the message:\n"))
+	print("Enter the message:")
 
 	while (True):
-		message += '\n'
 		try:
 			message += str(input())
+			message += '\n'
 			
 		except EOFError:
    			 break
