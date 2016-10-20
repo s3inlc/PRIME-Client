@@ -116,6 +116,7 @@ def sendMessage(server):
 
 	message = ''
 	print("Enter the message:")
+	#message = str(input("Enter:"))
 
 	while (True):
 		try:
@@ -125,6 +126,8 @@ def sendMessage(server):
 		except EOFError:
    			 break
 
+	message = message[:-1]
+
 	#print(message)
 	encryptedMessage = publicKey.encrypt(message.encode('utf-8'), 32)
 
@@ -132,6 +135,9 @@ def sendMessage(server):
 	#print(encryptedMessage[0])
 	send += b'###'
 	#print(send + b'\n')
+
+	list1 = list(bytearray(send))
+	#print(list1)
 	
 	base = base64.b64encode(send)
 	#print(base + b'\n')
@@ -144,7 +150,7 @@ def sendMessage(server):
 	#print(command)
 
 	server.send(command)
-	resp = server.recv(1024)
+	resp = server.recv(100000)
 	#print(resp)
 
 	if resp == b'NEMSG:OK\n':
@@ -155,7 +161,7 @@ def sendMessage(server):
 
 def getMessage(master):
 	master.send(bytes('GTSRV', 'utf8'))
-	serverList = master.recv(1024)
+	serverList = master.recv(100000)
 	if serverList.startswith(b'GTSRV:'):
 		#print(serverList)
 		serverList = serverList[7:-2]
@@ -182,6 +188,8 @@ def getMessage(master):
 			#print(listAvailableIDs)
 
 			arrayAvailableIDs = listAvailableIDs.split(b';')
+			arrayAvailableIDs.sort()
+			
 			#print(arrayAvailableIDs)
 
 			if (bytes(idSha, 'utf-8') not in arrayAvailableIDs):
@@ -280,6 +288,7 @@ def getMessage(master):
 							if elem < 0:
 								res[i] += 256
 							i += 1
+						#print(res)
 
 						res = bytes(res)
 						#print(res)
