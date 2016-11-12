@@ -9,6 +9,7 @@ import hashlib
 from operator import sub
 import os.path
 import time
+from time import sleep
 
 def generateKey():
 	random_generator = Random.new().read
@@ -326,18 +327,26 @@ def serverConnection(ip, port):
 	host = ip #IP of Server
 	port = port #Port of Server
 
-	s.connect((host, port))
+	try:
+		s.connect((host, port))
+		print('Connected to server ' + ip);
+	except socket.error as exc:
+		print('Cannot connect to server ' + ip + '. Reason: ' + str(exc));
 	return s
 
 
 def pingTest(master):
-	master.send(bytes('SPING:1', 'utf8'))
-	message = master.recv(100000000)
-	if message.startswith(b'SPING:'):
-		return True
-	else:
-		return False
-	
+	try:
+		master.send(bytes('SPING:1', 'utf8'))
+		message = master.recv(100000000)
+		if message.startswith(b'SPING:'):
+			return True
+		else:
+			return False
+	except socket.error as exc:
+		print('PING to Masterserver failed. Reason: ' + str(exc) + '. Trying to reconnect.');
+
+
 
 def start():
 	s = serverConnection('127.0.0.1', 6667) #Masterserver
@@ -384,5 +393,6 @@ def start():
 				continue
 		else:
 			s = serverConnection('127.0.0.1', 6667) #Masterserver
+			sleep(2);
 
 start()
