@@ -10,6 +10,7 @@ from operator import sub
 import os.path
 import time
 from time import sleep
+import argparse
 
 def generateKey():
 	random_generator = Random.new().read
@@ -349,7 +350,18 @@ def pingTest(master):
 
 
 def start():
-	s = serverConnection('127.0.0.1', 6667) #Masterserver
+	ip = '127.0.0.1'
+	port = 6667
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-ip", help="IP to Materserver")
+	parser.add_argument("-p", "--port", help="specify the Port to Masterserver", type=int)
+	args = parser.parse_args()
+	if args.ip:
+		ip = args.ip
+	if args.port:
+		port = args.port
+		print(port)
+	s = serverConnection(ip, port) #Masterserver
 
 	while True:
 		if pingTest(s):
@@ -392,7 +404,7 @@ def start():
 				print('Unknown command. Press h for help.')
 				continue
 		else:
-			s = serverConnection('127.0.0.1', 6667) #Masterserver
+			s = serverConnection(ip, port) #Masterserver
 			sleep(2);
 
 start()
