@@ -8,34 +8,69 @@ import random
 import hashlib
 from operator import sub
 import os.path
+from os import walk
 import time
 from time import sleep
 import argparse
 
 def generateKey():
+	if (not os.path.exists('./ownKey')):
+		os.makedirs('./ownKey')
+
 	random_generator = Random.new().read
 	key = RSA.generate(1024, random_generator)
-	f = open("key.txt", "w")
+	f = open("./ownKey/key.txt", "w")
 	f.write(key.exportKey().decode('utf-8'))
 	f.close()
 	publickey = key.publickey()
-	f = open("publickey.txt", "w")
+	f = open("./ownKey/publickey.txt", "w")
 	f.write(key.publickey().exportKey().decode('utf-8'))
 	f.close()
 
+def generatePublicKeys():
+	if (not os.path.exists('./publickeys')):
+		os.makedirs('./publickeys')
 
-def loadKey():
-	f = open("key.txt", "r")
+	for i in range(0, 10):
+		random_generator = Random.new().read
+		key = RSA.generate(1024, random_generator)
+		f = open("./publickeys/key" + str(i) + ".txt", "w")
+		f.write(key.exportKey().decode('utf-8'))
+		f.close()
+		publickey = key.publickey()
+		f = open("./publickeys/publickey" + str(i) + ".txt", "w")
+		f.write(key.publickey().exportKey().decode('utf-8'))
+		f.close()
+
+
+def loadOwnKey():
+	f = open("./ownKey/key.txt", "r")
 	key = RSA.importKey(f.read())
 	f.close()
-	f = open("publickey.txt", "r")
+	f = open("./ownKey/publickey.txt", "r")
 	publicKey = RSA.importKey(f.read())
 	f.close()
 	return (key, publicKey)
 
+def loadKey(path):
+	f = open("./publickeys/" + path, "r")
+	publicKey = RSA.importKey(f.read())
+	f.close()
+	return (publicKey)
 
-def calculateID():
-	f = open("publickey.txt", "rb")
+
+def calculateOwnID():
+	f = open("./ownKey/publickey.txt", "rb")
+	sha1 = hashlib.sha1()
+	try:
+		sha1.update(f.read())
+	finally:
+		f.close()
+	return sha1.hexdigest()
+
+
+def calculateID(path):
+	f = open("./publickeys/" + path, "rb")
 	sha1 = hashlib.sha1()
 	try:
 		sha1.update(f.read())
@@ -72,7 +107,7 @@ def writeCacheMessage(idSha, msg):
 
 
 def readCacheMessage():
-	shaID = calculateID()
+	shaID = calculateOwnID()
 	if (os.path.exists('./msg/' + shaID)):
 		for file in os.listdir('./msg/' + shaID):
 			if file.endswith(".txt"):
@@ -84,7 +119,7 @@ def readCacheMessage():
 
 
 def printMessages(messages, idSha):
-	keys = loadKey()
+	keys = loadOwnKey()
 	privateKey = keys[0]
 	publicKey = keys[1]
 
@@ -101,7 +136,7 @@ def printMessages(messages, idSha):
 	
 
 def cryptTest():
-	keys = loadKey()
+	keys = loadOwnKey()
 	privateKey = keys[0]
 	publicKey = keys[1]
 	
@@ -113,52 +148,74 @@ def cryptTest():
 
 
 def sendMessage(server):
-	keys = loadKey()
-	publicKey = keys[1]
-
-	message = ''
-	print("Enter the message:")
-	#message = str(input("Enter:"))
-
-	while (True):
-		try:
-			message += str(input())
-			message += '\n'
-			
-		except EOFError:
-   			 break
-
-	message = message[:-1]
-
-	#print(message)
-	encryptedMessage = publicKey.encrypt(message.encode('utf-8'), 32)
-
-	send = encryptedMessage[0]
-	#print(encryptedMessage[0])
-	send += b'###'
-	#print(send + b'\n')
-
-	list1 = list(bytearray(send))
-	#print(list1)
-	
-	base = base64.b64encode(send)
-	#print(base + b'\n')
-
-	idSha = calculateID()
-	#print(idSha)
-
-	command = bytes('NEMSG:' + idSha + ':', 'utf8')
-	command += base
-	#print(command)
-
-	server.send(command)
-	resp = server.recv(100000)
-	#print(resp)
-
-	if resp == b'NEMSG:OK\n':
-		print('Sending message succesfull.')
+	if (not os.path.exists('./publickeys')):
+		print('Please add publickeys to the folder "./publickeys" for sending a message.')
 	else:
-		print('Something went wrong while sending the messsage. Try again later.')
+		f = []
+		for (dirpath, dirnames, filenames) in walk('./publickeys'):
+			f.extend(filenames)
+			break
+
+		f.sort()
+
+		print('Available keys are:')
+		for file in f:
+			print(file)
+
+		wantedKey = str(input("Please type the name of the key.\n"))
+
+		if (os.path.isfile('./publickeys/' + wantedKey) or os.path.isfile('./publickeys/' + wantedKey + '.txt')):
+			if not wantedKey.endswith('.txt'):	
+				wantedKey = wantedKey + '.txt'
+
+			publicKey = loadKey(wantedKey)
+
+			message = ''
+			print("Enter the message:")
+			#message = str(input("Enter:"))
+
+			while (True):
+				try:
+					message += str(input())
+					message += '\n'
+			
+				except EOFError:
+		   			 break
+
+			message = message[:-1]
+
+			#print(message)
+			encryptedMessage = publicKey.encrypt(message.encode('utf-8'), 32)
+
+			send = encryptedMessage[0]
+			#print(encryptedMessage[0])
+			send += b'###'
+			#print(send + b'\n')
+
+			list1 = list(bytearray(send))
+			#print(list1)
+	
+			base = base64.b64encode(send)
+			#print(base + b'\n')
+
+			idSha = calculateID(wantedKey)
+			#print(idSha)
+
+			command = bytes('NEMSG:' + idSha + ':', 'utf8')
+			command += base
+			#print(command)
+
+			server.send(command)
+			resp = server.recv(100000)
+			#print(resp)
+
+			if resp == b'NEMSG:OK\n':
+				print('Sending message succesfull.')
+			else:
+				print('Something went wrong while sending the messsage. Try again later.')
+					
+		else:
+			print(wantedKey + ' is not a file.')
 
 
 def getMessage(master):
@@ -184,7 +241,7 @@ def getMessage(master):
 			server1 = serverConnection(slave1.split(b',')[0], int(slave1.split(b',')[1]))
 			server2 = serverConnection(slave2.split(b',')[0], int(slave2.split(b',')[1]))
 	
-			idSha = calculateID()
+			idSha = calculateOwnID()
 
 			master.send(bytes('GTADD', 'utf-8'))
 			listAvailableIDs = master.recv(100000)
@@ -377,6 +434,9 @@ def start():
 			elif var == '4':
 				generateKey()
 				continue
+			elif var == '6':
+				generatePublicKeys()
+				continue
 			elif var == '7':
 				readCacheMessage()
 				continue
@@ -394,6 +454,7 @@ def start():
 				print('Press 2 for recieving new messages.')
 				print('Press 3 for loading the keys (debug).')
 				print('Press 4 for generating new keys (debug).')
+				print('Press 6 for generating 10 new public keys (debug).')
 				print('Press 7 for printing cached messages (debug).')
 				print('Press 8 for a PING test to Masterserver (debug).')
 				print('Press 9 for a crypting test. (debug).')
