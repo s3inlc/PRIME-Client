@@ -322,17 +322,15 @@ def getMessage(master):
 
 
 
-def serverConnection(ip, port):
+def serverConnection(host, port):
 	s = socket.socket()
 	#host = socket.gethostname()
-	host = ip #IP of Server
-	port = port #Port of Server
 
 	try:
 		s.connect((host, port))
-		print('Connected to server ' + ip);
+		print('Connected to server ' + str(host) + ':' + str(port));
 	except socket.error as exc:
-		print('Cannot connect to server ' + ip + '. Reason: ' + str(exc));
+		print('Cannot connect to server ' + str(host) + ':' + str(port) + '. Reason: ' + str(exc));
 	return s
 
 
