@@ -408,7 +408,7 @@ def start():
 	ip = '127.0.0.1'
 	port = 6667
 	parser = argparse.ArgumentParser()
-	parser.add_argument("-ip", help="IP to Materserver")
+	parser.add_argument("-i", "--ip", help="IP to Materserver")
 	parser.add_argument("-p", "--port", help="specify the Port to Masterserver", type=int)
 	args = parser.parse_args()
 	if args.ip:
