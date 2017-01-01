@@ -133,18 +133,6 @@ def printMessages(messages, idSha):
 			writeCacheMessage(idSha, str(decryptedMessage))
 			print(str(counter) + ': ' + str(decryptedMessage))
 			counter = counter+1
-	
-
-def cryptTest():
-	keys = loadOwnKey()
-	privateKey = keys[0]
-	publicKey = keys[1]
-	
-	encrypt = publicKey.encrypt('encrypt this message'.encode('utf-8'), 32)
-	print('encrypted message: ', encrypt, '\n')
-
-	decrypt = privateKey.decrypt(ast.literal_eval(str(encrypt)))
-	print('decrypted: ', decrypt)
 
 
 def sendMessage(server):
@@ -443,9 +431,6 @@ def start():
 			elif var == '8':
 				pingTest(s)
 				continue
-			elif var == '9':
-				cryptTest()
-				continue
 			elif var == '0':
 				s.close() #Connection to Masterserver closed
 				break
@@ -457,7 +442,6 @@ def start():
 				print('Press 6 for generating 10 new public keys (debug).')
 				print('Press 7 for printing cached messages (debug).')
 				print('Press 8 for a PING test to Masterserver (debug).')
-				print('Press 9 for a crypting test. (debug).')
 				print('Press 0 for closing the connection.')
 			else:
 				print('Unknown command. Press h for help.')
